@@ -1,4 +1,4 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::{ffi::CStr, hash::{DefaultHasher, Hash, Hasher}, os::raw::c_char};
 
 use chrono::Utc;
 use mlpa::Plugin;
@@ -13,13 +13,16 @@ macro_rules! try_return {
 }
 
 #[no_mangle]
-pub fn get_plugin() -> Plugin {
+pub extern "C" fn get_plugin() -> Plugin {
+    use mlpa::Optional::Some;
     Plugin {
-        message_handler: Some(Box::into_raw(Box::new(message_handler))),
+        message_handler: Some(message_handler),
     }
 }
 
-fn message_handler(message: String) {
+extern "C" fn message_handler(message: *const c_char) {
+    let message = unsafe { CStr::from_ptr(message) };
+    let message = String::from_utf8_lossy(message.to_bytes()).to_string();
     match std::fs::read_dir("archive") {
         Ok(_) => {}
         Err(e) => match e.kind() {
