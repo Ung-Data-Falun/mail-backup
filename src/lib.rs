@@ -16,8 +16,13 @@ macro_rules! try_return {
 pub extern "C" fn get_plugin() -> Plugin {
     use mlpa::Optional::Some;
     Plugin {
+        on_start: Some(on_start),
         message_handler: Some(message_handler),
     }
+}
+
+extern "C" fn on_start() { 
+    println!("Initialized mail-backup");
 }
 
 extern "C" fn message_handler(message: *const c_char) {
